@@ -930,10 +930,10 @@ if __name__=='__main__':
 
     args = args.parse_args()
 
-    DIR = "/home/vision/zjg/" + args.dir_num + "/shooter3d_env/"
+    # DIR = "/home/vision/zjg/" + args.dir_num + "/shooter3d_env/"
     np.random.seed(args.seed)
     TIMESTEPS_PER_ACTOR_BATCH = args.horizon
-    SAVE_DIR = "/home/vision/zjg/" + args.dir_num + "/info/"
+    # SAVE_DIR = "/home/vision/zjg/" + args.dir_num + "/info/"
 
     my_env = os.environ
     my_env['moba_env_is_train'] = args.is_train

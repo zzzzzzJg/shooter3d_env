@@ -137,6 +137,10 @@ func (hero *Hero) InitFromJson(full_path string, id int32) bool {
 		hero.type_id = id
 		hero.name = jsoninfo.Name
 		hero.fov = jsoninfo.Fov
+		hero.mag_size = jsoninfo.MagSize
+		hero.mag_remain = jsoninfo.MagSize
+		hero.bullet_num = jsoninfo.BulletNum
+		hero.reload_time = jsoninfo.ReloadTime
 
 		hero.extent[0] = jsoninfo.Extent[0]
 		hero.extent[1] = jsoninfo.Extent[1]
