@@ -16,6 +16,8 @@ import random, cv2
 import time
 import math
 import json
+import argparse
+
 
 
 EPSILON = 0.2
@@ -711,6 +713,10 @@ class MultiPlayerAgent():
                 c_loss_list.append(c_loss)
                 a_loss_list.append(a_loss)
 
+                AddPlotLog(SAVE_DIR + "c_loss.txt", '{}\n'.format(c_loss))
+                AddPlotLog(SAVE_DIR + "a_loss.txt", '{}\n'.format(a_loss))
+                AddPlotLog(SAVE_DIR + "a_entropy.txt", '{}\n'.format(entropy))
+
         self.train_writer.add_summary(summary_new_val, timestep)
         self.train_writer.add_summary(summary_old_val, timestep)
 
@@ -785,6 +791,8 @@ def GetDataGeneratorAndTrainer(scene_id):
 
 def learn(scene_id, num_steps=NUM_STEPS):
     global g_step
+    global SAVE_DIR
+
     g_step = 0
 
     agent, data_generator, session = GetDataGeneratorAndTrainer(scene_id)
@@ -812,6 +820,9 @@ def learn(scene_id, num_steps=NUM_STEPS):
                         inputs={"input_state":agent.s},
                         outputs={"output_policy_0": agent.a_policy_new[0], "output_policy_1": agent.a_policy_new[1], "output_policy_2": agent.a_policy_new[2], "output_value":agent.value})            
         
+        AddPlotLog(SAVE_DIR + "EpLenMean.txt", '{} {}\n'.format(g_step, np.mean(agent.lenbuffer)))
+        AddPlotLog(SAVE_DIR + "EpRewMean.txt", '{} {}\n'.format(g_step, np.mean(agent.unclipped_rewbuffer)))
+
         summary0 = tf.Summary()
         summary0.value.add(tag='EpLenMean', simple_value=np.mean(agent.lenbuffer))
         agent.train_writer.add_summary(summary0, timestep)
@@ -902,15 +913,33 @@ def GetSkillTypes(skill_cfg_file_path, hero_skills):
         skill_dir_type_check.append(skill_dir_type)
     return skill_dir_type_check
 
+def AddPlotLog(file_dir, value):
+    f = open(file_dir, 'a')
+    f.write(value)
+    f.close()
+
 
 if __name__=='__main__':
 
-    scene_id = 10
+    args = argparse.ArgumentParser()
+    args.add_argument("--seed", type=int, default=2, help="the random seed")
+    args.add_argument("--dir_num", type=str, default="0")
+    args.add_argument("--horizon", type=int, default=8192)
+    args.add_argument("--scene_id", type=int, default=10)
+    args.add_argument("--is_train", type=str, default="True")
+
+    args = args.parse_args()
+
+    DIR = "/home/vision/zjg/" + args.dir_num + "/shooter3d_env/"
+    np.random.seed(args.seed)
+    TIMESTEPS_PER_ACTOR_BATCH = args.horizon
+    SAVE_DIR = "/home/vision/zjg/" + args.dir_num + "/info/"
+
     my_env = os.environ
-    my_env['moba_env_is_train'] = 'True'
-    my_env['moba_env_scene_id'] = '{}'.format(scene_id)
+    my_env['moba_env_is_train'] = args.is_train
+    my_env['moba_env_scene_id'] = '{}'.format(args.scene_id)
 
     if g_is_train:
-        learn(scene_id, num_steps=5000)
+        learn(args.scene_id, num_steps=5000)
     else:
         play_game()
