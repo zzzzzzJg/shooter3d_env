@@ -19,7 +19,6 @@ import json
 import argparse
 
 
-
 EPSILON = 0.2
 # 3 * 3 + 2
 ONE_HOT_SIZE = 10
@@ -27,7 +26,7 @@ ONE_HOT_SIZE = 10
 # STATE_SIZE will be calculated from scene unit config
 STATE_SIZE = 0
 
-ONE_HERO_FEATURE_SIZE = 5
+ONE_HERO_FEATURE_SIZE = 7
 
 EMBED_SIZE = 5
 LAYER_SIZE = 128
@@ -46,7 +45,7 @@ BATCH_SCALE = 8
 BATCH_SIZE = 64 * BATCH_SCALE
 EPOCH_NUM = 4
 LEARNING_RATE = 4e-4
-TIMESTEPS_PER_ACTOR_BATCH = 16384 #2048 * BATCH_SCALE
+TIMESTEPS_PER_ACTOR_BATCH = 1024 * 16 #2048 * BATCH_SCALE
 GAMMA = 0.99
 LAMBDA = 0.95
 NUM_STEPS = 5000
@@ -67,7 +66,7 @@ g_out_tb = True
 # Control if train or play
 g_is_train = True
 # True means start a new train task without loading previous model.
-g_start_anew = False
+g_start_anew = True
 
 # Control if use priority sampling
 g_enable_per = False
@@ -712,10 +711,10 @@ class MultiPlayerAgent():
                 KL_distance_list.append(kl_distance)
                 c_loss_list.append(c_loss)
                 a_loss_list.append(a_loss)
-
-                AddPlotLog(SAVE_DIR + "c_loss.txt", '{}\n'.format(c_loss))
-                AddPlotLog(SAVE_DIR + "a_loss.txt", '{}\n'.format(a_loss))
-                AddPlotLog(SAVE_DIR + "a_entropy.txt", '{}\n'.format(entropy))
+                
+                # AddPlotLog(SAVE_DIR + "c_loss.txt", '{}\n'.format(c_loss))
+                # AddPlotLog(SAVE_DIR + "a_loss.txt", '{}\n'.format(a_loss))
+                # AddPlotLog(SAVE_DIR + "a_entropy.txt", '{}\n'.format(entropy))
 
         self.train_writer.add_summary(summary_new_val, timestep)
         self.train_writer.add_summary(summary_old_val, timestep)
@@ -723,6 +722,8 @@ class MultiPlayerAgent():
         scalar_summary(self.train_writer, 'c_loss_raw', c_loss_list, timestep)
         scalar_summary(self.train_writer, 'a_loss_raw', a_loss_list, timestep)
         scalar_summary(self.train_writer, 'a_entropy_raw', Entropy_list, timestep)
+
+        
 
         histo_summary(self.train_writer, 'tdlamret_raw', tdlamret, timestep)
         histo_summary(self.train_writer, 'atarg_raw', atarg, timestep)
@@ -792,7 +793,6 @@ def GetDataGeneratorAndTrainer(scene_id):
 def learn(scene_id, num_steps=NUM_STEPS):
     global g_step
     global SAVE_DIR
-
     g_step = 0
 
     agent, data_generator, session = GetDataGeneratorAndTrainer(scene_id)
@@ -820,12 +820,13 @@ def learn(scene_id, num_steps=NUM_STEPS):
                         inputs={"input_state":agent.s},
                         outputs={"output_policy_0": agent.a_policy_new[0], "output_policy_1": agent.a_policy_new[1], "output_policy_2": agent.a_policy_new[2], "output_value":agent.value})            
         
-        AddPlotLog(SAVE_DIR + "EpLenMean.txt", '{} {}\n'.format(g_step, np.mean(agent.lenbuffer)))
-        AddPlotLog(SAVE_DIR + "EpRewMean.txt", '{} {}\n'.format(g_step, np.mean(agent.unclipped_rewbuffer)))
-
         summary0 = tf.Summary()
         summary0.value.add(tag='EpLenMean', simple_value=np.mean(agent.lenbuffer))
         agent.train_writer.add_summary(summary0, timestep)
+
+        # AddPlotLog(SAVE_DIR + "EpLenMean.txt", '{} {}\n'.format(g_step, np.mean(agent.lenbuffer)))
+        # AddPlotLog(SAVE_DIR + "EpRewMean.txt", '{} {}\n'.format(g_step, np.mean(agent.unclipped_rewbuffer)))
+
 
         summary1 = tf.Summary()
         summary1.value.add(tag='UnClippedEpRewMean', simple_value=np.mean(agent.unclipped_rewbuffer))
@@ -913,6 +914,7 @@ def GetSkillTypes(skill_cfg_file_path, hero_skills):
         skill_dir_type_check.append(skill_dir_type)
     return skill_dir_type_check
 
+
 def AddPlotLog(file_dir, value):
     f = open(file_dir, 'a')
     f.write(value)
@@ -922,7 +924,7 @@ def AddPlotLog(file_dir, value):
 if __name__=='__main__':
 
     args = argparse.ArgumentParser()
-    args.add_argument("--seed", type=int, default=2, help="the random seed")
+    args.add_argument("--seed", type=int, default=0, help="the random seed")
     args.add_argument("--dir_num", type=str, default="0")
     args.add_argument("--horizon", type=int, default=8192)
     args.add_argument("--scene_id", type=int, default=10)

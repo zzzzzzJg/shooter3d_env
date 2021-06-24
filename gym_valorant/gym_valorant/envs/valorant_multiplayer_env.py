@@ -4,10 +4,11 @@ import subprocess
 import os
 import json
 import numpy as np
+import copy
 from gym import error, spaces, utils
 from gym.utils import seeding
 
-ONE_HERO_FEATURE_SIZE = 5
+ONE_HERO_FEATURE_SIZE = 7
 BATTLE_FIELD_SIZE = 1000.0
 MAIN_ACTION_DIMS = 3
 MOVE_DIMS = 8
@@ -147,43 +148,54 @@ class ValorantMultiPlayerEnv(gym.Env):
         
         for hero_idx in range(self_hero_count):        
             feature_idx = 0    
-            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosX'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosX'][hero_idx]) / BATTLE_FIELD_SIZE)
             feature_idx += 1
-            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosY'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosY'][hero_idx]) / BATTLE_FIELD_SIZE)
             feature_idx += 1
-            state[hero_idx][feature_idx] = (float(json_data['SelfHeroHealth'][hero_idx]) / float(json_data['SelfHeroHealthFull'][hero_idx])) - 0.5
+            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosZ'][hero_idx]) / 500) - 0.5
+            feature_idx += 1
+            state[hero_idx][feature_idx] = (float(json_data['SelfHeroHealth'][hero_idx]) / float(json_data['SelfHeroHealthFull'][hero_idx]))
             feature_idx += 1      
-            state[hero_idx][feature_idx] = (float(json_data['SelfHeroDirX'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+            state[hero_idx][feature_idx] = float(json_data['SelfHeroDirX'][hero_idx])
             feature_idx += 1
-            state[hero_idx][feature_idx] = (float(json_data['SelfHeroDirY'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+            state[hero_idx][feature_idx] = float(json_data['SelfHeroDirY'][hero_idx])
+            feature_idx += 1
+            state[hero_idx][feature_idx] = float(json_data['SelfHeroDirZ'][hero_idx])
             feature_idx += 1
             for _id_0 in range(self_hero_count):
                 if _id_0 == hero_idx:
                     continue
-                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosX'][_id_0]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosX'][_id_0]) / BATTLE_FIELD_SIZE)
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosY'][_id_0]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosY'][_id_0]) / BATTLE_FIELD_SIZE)
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['SelfHeroHealth'][_id_0]) / float(json_data['SelfHeroHealthFull'][_id_0])) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosZ'][_id_0]) / 500) - 0.5
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['SelfHeroDirX'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['SelfHeroHealth'][_id_0]) / float(json_data['SelfHeroHealthFull'][_id_0]))
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['SelfHeroDirY'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = float(json_data['SelfHeroDirX'][hero_idx])
+                feature_idx += 1
+                state[hero_idx][feature_idx] = float(json_data['SelfHeroDirY'][hero_idx])
+                feature_idx += 1
+                state[hero_idx][feature_idx] = float(json_data['SelfHeroDirZ'][hero_idx])
                 feature_idx += 1
 
             oppo_hero_count = int(json_data['OppoHeroCount'])
             for _id_1 in range(oppo_hero_count):            
-                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosX'][_id_1]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosX'][_id_1]) / BATTLE_FIELD_SIZE)
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosY'][_id_1]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosY'][_id_1]) / BATTLE_FIELD_SIZE)
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['OppoHeroHealth'][_id_1]) / float(json_data['OppoHeroHealthFull'][_id_1])) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosZ'][_id_1]) / 500) - 0.5
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['OppoHeroDirX'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['OppoHeroHealth'][_id_1]) / float(json_data['OppoHeroHealthFull'][_id_1]))
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['OppoHeroDirY'][hero_idx]) / BATTLE_FIELD_SIZE) - 0.5
+                state[hero_idx][feature_idx] = float(json_data['OppoHeroDirX'][hero_idx])
                 feature_idx += 1
-
+                state[hero_idx][feature_idx] = float(json_data['OppoHeroDirY'][hero_idx])
+                feature_idx += 1
+                state[hero_idx][feature_idx] = float(json_data['OppoHeroDirZ'][hero_idx])
+                feature_idx += 1
             pass
 
         pass
@@ -380,7 +392,7 @@ class ValorantMultiPlayerEnv(gym.Env):
                 self.depth = np.zeros((1, DEPTH_MAP_SIZE * DEPTH_MAP_SIZE))
                 
                 self.fill_state(self.state, self.depth, jobj)                
-                self.last_state = self.state.copy()
+                self.last_state = copy.deepcopy(self.state)
                 break
 
             except:
