@@ -114,7 +114,7 @@ class ValorantMultiPlayerEnv(gym.Env):
         my_env['TF_CPP_MIN_LOG_LEVEL'] = '3'
         gamecore_file_path = '{}/../../../gamecore/gamecore'.format(root_folder)
         self.proc = subprocess.Popen([gamecore_file_path, 
-                                '-render=true', '-gym_mode=true', '-debug_log=false', '-slow_tick=false', 
+                                '-render=false', '-gym_mode=true', '-debug_log=false', '-slow_tick=false', 
                                 '-multi_player=true', '-scene={}'.format(scene_id), manual_str],
                                 stdin=subprocess.PIPE,
                                 stdout=subprocess.PIPE,
@@ -152,7 +152,7 @@ class ValorantMultiPlayerEnv(gym.Env):
             feature_idx += 1
             state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosY'][hero_idx]) / BATTLE_FIELD_SIZE)
             feature_idx += 1
-            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosZ'][hero_idx]) / 500) - 0.5
+            state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosZ'][hero_idx]) / 250) - 1
             feature_idx += 1
             state[hero_idx][feature_idx] = (float(json_data['SelfHeroHealth'][hero_idx]) / float(json_data['SelfHeroHealthFull'][hero_idx]))
             feature_idx += 1      
@@ -169,7 +169,7 @@ class ValorantMultiPlayerEnv(gym.Env):
                 feature_idx += 1
                 state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosY'][_id_0]) / BATTLE_FIELD_SIZE)
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosZ'][_id_0]) / 500) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['SelfHeroPosZ'][_id_0]) / 250) - 1
                 feature_idx += 1
                 state[hero_idx][feature_idx] = (float(json_data['SelfHeroHealth'][_id_0]) / float(json_data['SelfHeroHealthFull'][_id_0]))
                 feature_idx += 1
@@ -186,7 +186,7 @@ class ValorantMultiPlayerEnv(gym.Env):
                 feature_idx += 1
                 state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosY'][_id_1]) / BATTLE_FIELD_SIZE)
                 feature_idx += 1
-                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosZ'][_id_1]) / 500) - 0.5
+                state[hero_idx][feature_idx] = (float(json_data['OppoHeroPosZ'][_id_1]) / 250) - 1
                 feature_idx += 1
                 state[hero_idx][feature_idx] = (float(json_data['OppoHeroHealth'][_id_1]) / float(json_data['OppoHeroHealthFull'][_id_1]))
                 feature_idx += 1
@@ -332,6 +332,7 @@ class ValorantMultiPlayerEnv(gym.Env):
                     hp_remain_reward_coef = 0
                     hp_reward = self.get_hp_remain_reward()
                     self.reward += hp_remain_reward_coef * hp_reward
+                    # self.reward += self.state[0][2]
                 else:                    
                     self.reward = 0
                     harm_reward = self.get_harm_reward()
